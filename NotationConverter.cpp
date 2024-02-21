@@ -89,174 +89,188 @@ public:
         return infixToPrefix(postfixToInfix(inStr));
     }
 
-    // Takes a string of infix notation and returns a string in postfix notation
-    std::string infixToPostfix(std::string inStr){
+    // Converts an infix expression to postfix notation
+    std::string infixToPostfix(std::string inStr) {
 
-        // Validate input is infix
-        if(inStr[0] != '(') {
-            return "Error: Input must be in infix format.";
+        // Ensure the expression starts with an opening parenthesis to confirm infix format
+        if (inStr[0] != '(') {
+            return "Error: Expected infix expression to start with '('.";
         }
         
-        for(size_t i=0; i < inStr.length(); ++i){
+        // Iterate through each character in the expression
+        for (size_t i = 0; i < inStr.length(); ++i) {
             
-            // Remove parenthesis from the infix notation
-            while(inStr[i] != *inStr.end() && inStr[i] != ')'){
-                if(inStr[i] != ' '){
-                    // Store operators in the temporary deque
-                    if(inStr[i] == '+' || inStr[i] == '-' || inStr[i] == '*' || inStr[i] == '/'){
+            // Skip closing parenthesis and continue processing
+            while (inStr[i] != *inStr.end() && inStr[i] != ')') {
+                // Ignore spaces to focus on operators and operands
+                if (inStr[i] != ' ') {
+                    // Queue operators for later addition to the postfix expression
+                    if (inStr[i] == '+' || inStr[i] == '-' || inStr[i] == '*' || inStr[i] == '/') {
                         operatorsDeque.enqueueRear(inStr[i]);
                     }
-                    // Store operands in the main deque
-                    else if(inStr[i] != '(') {
+                    // Directly add operands to the postfix expression queue
+                    else if (inStr[i] != '(') {
                         primaryDeque.enqueueRear(inStr[i]);
                     }
                 }
                 i++;
             }
 
-            int count = operatorsDeque.getSize();
-            for(int i = 0; i < count; i++){
-        
-                // Insert from the back of the operators deque if there are 2 operators left
-                if(operatorsDeque.getSize() == 2){
+            // Manage the operators' integration into the postfix expression
+            int operatorCount = operatorsDeque.getSize();
+            for (int j = 0; j < operatorCount; j++) {
+                // Special handling for when exactly two operators remain
+                if (operatorsDeque.getSize() == 2) {
                     primaryDeque.enqueueRear(operatorsDeque.getRear());
                     operatorsDeque.dequeueRear();
-                }
-                else{
+                } else {
+                    // Sequentially add operators from the deque to the postfix expression
                     primaryDeque.enqueueRear(operatorsDeque.getFront());
                     operatorsDeque.dequeueFront();
                 }
             }
         }
 
-        // Return elements in the main deque as a single string
+        // Compile and return the postfix expression as a single string
         return toString();
     }
 
-    // Takes a string of infix notation and returns a std::string in prefix notation
-    std::string infixToPrefix(std::string inStr){
 
-        // Validate input is infix
-        if(inStr[0] != '(') {
-            return "Error: Input must be in infix format.";
+    // This method transforms an infix expression into its prefix form.
+    std::string infixToPrefix(std::string inStr) {
+
+        // Check the first character to ensure the format is indeed infix.
+        if (inStr[0] != '(') {
+            return "Error: Expected expression to follow infix conventions.";
         }
 
-        for(size_t i=0; i < inStr.length(); ++i){
+        // Iterate over the input string to process each character.
+        for (size_t i = 0; i < inStr.length(); ++i) {
 
-            // Remove parenthesis from the infix notation
-            while(inStr[i] != ')' && inStr[i] != *inStr.end()){
-                if(inStr[i] != ' '){
-                    if(inStr[i] == '+' || inStr[i] == '-' || inStr[i] == '*' || inStr[i] == '/'){
+            // Skip past closing parentheses and process till the end of the string.
+            while (inStr[i] != ')' && inStr[i] != *inStr.end()) {
+                // Ignore whitespace characters.
+                if (inStr[i] != ' ') {
+                    // For operators, decide their placement in the prefix expression.
+                    if (inStr[i] == '+' || inStr[i] == '-' || inStr[i] == '*' || inStr[i] == '/') {
 
-                        // Insert the operator to the front of the main deque if it is next to parenthesis
-                        if(inStr[i-2] == ')'){
+                        // Prioritize operators close to parentheses by placing them at the start.
+                        if (inStr[i - 2] == ')') {
                             primaryDeque.enqueueFront(inStr[i]);
+                        } else {
+                            // Otherwise, operators are appended to the end.
+                            primaryDeque.enqueueRear(inStr[i]);
                         }
-
-                        // Else insert to the back of the main deque
-                        else primaryDeque.enqueueRear(inStr[i]);
+                    } else if (inStr[i] != '(') { // Queue operands for later addition to the expression.
+                        operandsDeque.enqueueRear(inStr[i]);
                     }
-
-                    // Insert the operands into the temporary operands deque
-                    else if(inStr[i] != '(') operandsDeque.enqueueRear(inStr[i]);
                 }
                 i++;
             }
 
-            // Insert operands from the operands deque into the main deque
-            int count = operandsDeque.getSize();
-            for(int i=0; i < count; ++i){
+            // Transfer operands from their queue to the primary deque for final assembly.
+            int operandCount = operandsDeque.getSize();
+            for (int j = 0; j < operandCount; ++j) {
                 primaryDeque.enqueueRear(operandsDeque.getFront());
                 operandsDeque.dequeueFront();
             }
         }
 
-        // Return elements in the main deque as a single string
+        // Compile and return the prefix notation as a consolidated string.
         return toString();
     }
 
-    // Takes a string of prefix notation and returns a string in infix notation
-    std::string prefixToInfix(std::string inStr){
 
-        // Vaidate input is prefix
-        if(inStr[0] != '+' && inStr[0] != '-' && inStr[0] != '*' && inStr[0] != '/') {
-            return "Error: Input must be in prefix format.";
+    // Converts a prefix expression into its infix equivalent.
+    std::string prefixToInfix(std::string inStr) {
+
+        // Ensure the expression starts with a valid operator to confirm prefix format.
+        if (inStr[0] != '+' && inStr[0] != '-' && inStr[0] != '*' && inStr[0] != '/') {
+            return "Error: Expected prefix expression to start with an operator.";
         }
 
-        // Determine if parenthesis are needed and store count to make sure there is an even amount
-        bool parenthesis = false;
-        int par_count= 0;
+        // Track the need for parentheses and their balance within the expression.
+        bool needParenthesis = false;
+        int parenthesisCount = 0;
 
-        for(size_t i=0; i < inStr.size(); ++i){
-            if(inStr[i] != ' '){
+        // Process each character in the prefix expression.
+        for (size_t i = 0; i < inStr.length(); ++i) {
+            if (inStr[i] != ' ') { // Ignore spaces.
 
-                // Insert operators into operators deque
-                if(inStr[i] == '+' || inStr[i] == '-' || inStr[i] == '*' || inStr[i] == '/'){
+                // Queue operators for later processing and mark the need for opening parenthesis.
+                if (inStr[i] == '+' || inStr[i] == '-' || inStr[i] == '*' || inStr[i] == '/') {
                     operatorsDeque.enqueueRear(inStr[i]);
-                    primaryDeque.enqueueRear('(');
-                    par_count++;
-                    parenthesis = false; // No operand found yet
-                }
-                else{
-                    // Insert operands into main deque
+                    primaryDeque.enqueueRear('('); // Prepare to wrap the upcoming operands.
+                    parenthesisCount++;
+                    needParenthesis = false; // Reset flag until next operand is encountered.
+                } else { // For operands, directly add them to the primary queue.
                     primaryDeque.enqueueRear(inStr[i]);
 
-                    // Insert a parenthesis after an operator in between two operands is inserted
-                    if(parenthesis == true){
-                        primaryDeque.enqueueRear(')');
-                        par_count--; // Decrement count each time a closing parenthesis is inserted to keep at 0
+                    // Close the parenthesis if the previous element was an operand, ensuring proper grouping.
+                    if (needParenthesis) {
+                        primaryDeque.enqueueRear(')'); // Close the current group.
+                        parenthesisCount--; // Balance the count of open and close parentheses.
                     }
 
-                    // Insert the operator from the operands deque into the main deque
-                    if(operatorsDeque.isEmpty() == false){
+                    // Add the next operator from the queue to maintain prefix order.
+                    if (!operatorsDeque.isEmpty()) {
                         primaryDeque.enqueueRear(operatorsDeque.getRear());
                         operatorsDeque.dequeueRear();
-                        parenthesis = true; // Parenthesis is now needed in the next iteration of the loop
+                        needParenthesis = true; // Indicate that another parenthesis may be needed.
                     }
                 }
             }
         }
 
-        // Check if there are a correct amount of opening and closing parenthesis and fix as needed
-        if(par_count != 0){
-            while(par_count != 0){
-                primaryDeque.enqueueRear(')');
-                par_count--;
-            }
+        // Ensure all opened parentheses are properly closed.
+        while (parenthesisCount > 0) {
+            primaryDeque.enqueueRear(')');
+            parenthesisCount--;
         }
 
-        // Return elements in the main deque as a single string
+        // Compile and return the infix notation as a single string from the deque.
         return toString();
     }
 
-    // Takes a string of prefix notation and returns a string in postfix notation
-    std::string prefixToPostfix(std::string inStr){
+
+    // Converts a prefix expression directly into postfix notation.
+    std::string prefixToPostfix(std::string inStr) {
+        // This leverages the conversion from prefix to infix and then from infix to postfix
+        // to accomplish the transformation in a two-step process.
         return infixToPostfix(prefixToInfix(inStr));
     }
 
-    // Converts elements in the deque into a single string to be returned
-    std::string toString(){
-        std::string output;
+    // Assembles and returns the content of the primaryDeque as a formatted string.
+    std::string toString() {
+        std::string output; // Initialize an empty string to build the output.
 
-        // Checks if the deque is empty
-        if(primaryDeque.isEmpty()) {
-            return output;
+        // Return immediately if there's nothing to process.
+        if (primaryDeque.isEmpty()) {
+            return output; // Return an empty string if the deque has no elements.
         }
 
-        int dequeLength = primaryDeque.getSize();
+        int dequeLength = primaryDeque.getSize(); // Get the total number of elements in the deque.
 
-        // Fix formatting as instructed
-        for(int i=0; i < dequeLength; ++i){
-            if(primaryDeque.getFront() == ')') output.pop_back();
-                output += primaryDeque.getFront();
-            if(primaryDeque.getFront() != '(') output += ' ';
-                primaryDeque.dequeueFront();
+        // Sequentially process each element in the deque to format the output string.
+        for (int i = 0; i < dequeLength; ++i) {
+            // Skip adding a space before a closing parenthesis for proper formatting.
+            if (primaryDeque.getFront() == ')') output.pop_back();
+            
+            // Append the current element to the output string.
+            output += primaryDeque.getFront();
+            
+            // Add a trailing space for separation, except before a '(' to maintain formatting.
+            if (primaryDeque.getFront() != '(') output += ' ';
+            
+            // Move to the next element in the deque.
+            primaryDeque.dequeueFront();
         }
 
-        // Remove extra space
+        // Eliminate the trailing space added after the last element for correct formatting.
         output.pop_back();
 
-        // Return the string
+        // Deliver the assembled string, now representing the deque's content.
         return output;
     }
+
 };
